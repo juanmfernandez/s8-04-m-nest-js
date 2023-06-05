@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  api:
+    image: r4zu91/xepelin-api
+    container_name: xepelin-api
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: .
+    depends_on:
+      - db
+    ports:
+      - '${PORT}:${PORT}'
+
+  db:
+    image: mongo:5
+    container_name: mongo-xepelin
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGODB_DATABASE: nest-xepelin
+    volumes:
+      - ./mongo:/data/db
