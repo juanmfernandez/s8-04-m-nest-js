@@ -1,6 +1,6 @@
 import { Prop, SchemaFactory, Schema } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 @Schema()
 export class Invoice extends Document {
@@ -29,6 +29,10 @@ export class Invoice extends Document {
   @ApiProperty()
   @Prop()
   detail: string;
+
+  @ApiProperty()
+  @Prop({ ref: 'Company' })
+  company: Types.ObjectId;
 
   @ApiProperty()
   @Prop()

@@ -3,13 +3,18 @@ import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Invoice } from './entities/invoice.entity';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
+import { resolve } from 'path';
+import { Company } from 'src/companies/entities/company.entity';
+const PDFDocument = require('pdfkit-table');
 
 @Injectable()
 export class InvoicesService {
   constructor(
     @InjectModel(Invoice.name)
     private readonly invoiceModel: Model<Invoice>,
+    @InjectModel(Company.name)
+    private readonly companyModel: Model<Company>,
   ) {}
   async create(createInvoiceDto: CreateInvoiceDto) {
     try {
@@ -18,6 +23,9 @@ export class InvoicesService {
       const newInvoice = this.invoiceModel.create({
         ...invoiceData,
       });
+      (await newInvoice).company = new mongoose.Types.ObjectId(
+        invoiceData.company.toString(),
+      );
       (await newInvoice).save();
       return await newInvoice;
     } catch (error) {
@@ -44,6 +52,106 @@ export class InvoicesService {
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
+  }
+
+  async findOneAndConvertToPdf(id: string): Promise<Buffer> {
+    const invoice = await this.invoiceModel.findById(id);
+    const company = await this.companyModel.findById(invoice.company);
+
+    const invoicePdfBuffer: Buffer = await new Promise((resolve) => {
+      const doc = new PDFDocument({
+        size: 'A4',
+        buferPages: true,
+      });
+      const invoiceDates = {
+        headers: ['', ''],
+        rows: [
+          ['ID', invoice.id],
+          ['Emision', invoice.issueDate.toLocaleString()],
+          ['Vencimiento', invoice.dueDate.toLocaleString()],
+        ],
+      };
+      const invoiceTotal = {
+        headers: ['', ''],
+        rows: [['TOTAL FACTURA', invoice.amount]],
+      };
+      const invoiceToData = {
+        title: {
+          label: `Factura`,
+          fontSize: 24,
+          color: 'blue',
+          fontFamily: 'Helvetica-Bold',
+        },
+        subtitle: {
+          label: `${invoice.supplier}`,
+          fontSize: 16,
+          color: 'black',
+          fontFamily: 'Helvetica-Bold',
+        },
+        headers: ['', ''],
+        rows: [
+          ['Señores', company.razonSocial],
+          ['CUIT', company.rutEmpresa],
+          ['Teléfono', company.contact],
+          ['Direccion', company.address],
+        ],
+      };
+
+      const invoiceTable = {
+        headers: ['Cantidad', 'Descipcion', 'Precio'],
+        rows: [['1', invoice.detail, invoice.amount]],
+      };
+
+      doc.table(invoiceToData, {
+        hideHeader: true,
+        prepareRow: (row, indexColumn, indexRow, rectRow, rectCell) => {
+          doc.font('Helvetica').fontSize(12);
+          indexColumn === 0 && doc.addBackground(rectRow, 'grey', 0.15);
+        },
+        columnsSize: [110, 140],
+      });
+
+      doc.table(invoiceDates, {
+        hideHeader: true,
+        prepareRow: (row, indexColumn, indexRow, rectRow, rectCell) => {
+          doc.font('Helvetica').fontSize(11);
+          indexColumn === 0 && doc.addBackground(rectRow, 'grey', 0.15);
+        },
+        columnsSize: [75, 150],
+      });
+
+      doc.table(invoiceTable, {
+        prepareHeader: () => doc.font('Helvetica-Bold').fontSize(16),
+        prepareRow: (row, indexColumn, indexRow, rectRow, rectCell) => {
+          doc.font('Helvetica').fontSize(14);
+          indexColumn === 0 && doc.addBackground(rectRow, 'green', 0.2);
+        },
+        columnsSize: [150, 190, 150],
+      });
+      doc.moveDown(4);
+      doc.table(invoiceTotal, {
+        hideHeader: true,
+        width: 400,
+        x: 190,
+        divider: {
+          header: { disabled: true },
+          horizontal: { disabled: true },
+        },
+        prepareRow: (row, indexColumn, indexRow, rectRow, rectCell) => {
+          doc.font('Helvetica').fontSize(24);
+        },
+        columnsSize: [290, 230],
+      });
+
+      const buffer = [];
+      doc.on('data', buffer.push.bind(buffer));
+      doc.on('end', () => {
+        const data = Buffer.concat(buffer);
+        resolve(data);
+      });
+      doc.end();
+    });
+    return invoicePdfBuffer;
   }
 
   async update(id: string, updateInvoiceDto: UpdateInvoiceDto) {

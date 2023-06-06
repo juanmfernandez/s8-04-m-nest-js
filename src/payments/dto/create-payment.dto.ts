@@ -55,13 +55,12 @@ export class CreatePaymentDto {
   @IsString()
   company: string;
 
-  /*
-    @ApiProperty({
-        description: 'Bills id',
-        nullable: false,
-        minLength: 1,
-    })
-    @IsArray()
-    bills: string[];
-  */
+  @ApiProperty({
+    description: 'Invoice ids',
+    nullable: false,
+    minLength: 1,
+  })
+  @IsArray()
+  @IsOptional()
+  invoices: string[];
 }

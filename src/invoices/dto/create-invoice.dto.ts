@@ -55,6 +55,14 @@ export class CreateInvoiceDto {
   detail: string;
 
   @ApiProperty({
+    description: 'Company id',
+    nullable: false,
+    minLength: 1,
+  })
+  @IsString()
+  company: string;
+
+  @ApiProperty({
     description: 'Invoice status',
     nullable: false,
     minLength: 4,

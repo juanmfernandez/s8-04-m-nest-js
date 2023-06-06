@@ -34,9 +34,9 @@ export class Payment extends Document {
   @Prop({ array: false, ref: 'Company' })
   company: Types.ObjectId;
 
-  //@ApiProperty()
-  //@Prop({ array: true, ref: 'Bills' })
-  //bills: Types.ObjectId[];
+  @ApiProperty()
+  @Prop({ array: true, ref: 'Invoice' })
+  invoices?: Types.ObjectId[];
 }
 
 export const PaymentSchema = SchemaFactory.createForClass(Payment);
