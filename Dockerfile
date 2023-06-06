@@ -4,7 +4,7 @@ FROM node:18-alpine3.15 AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+RUN yarn install 
 
 # Build the app with cache dependencies
 FROM node:18-alpine3.15 AS builder
