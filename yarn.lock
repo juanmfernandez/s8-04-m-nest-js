@@ -6440,7 +6440,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pdfkit@npm:^0.13.0, pdfkit@npm:latest":
+"pdfkit@latest, pdfkit@npm:^0.13.0":
   version: 0.13.0
   resolution: "pdfkit@npm:0.13.0"
   dependencies:

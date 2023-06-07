@@ -50,6 +50,16 @@ export class PaymentsService {
     }
   }
 
+  async findByCompany(id: string) {
+    try {
+      const payment = await this.paymentModel.find()
+        .where('company').equals(new mongoose.Types.ObjectId(id.toString()));
+      return payment;
+    } catch (error) {
+      throw new HttpException(`Payment ${id} not found`, HttpStatus.NOT_FOUND);
+    }
+  }
+
   update(id: string, updatePaymentDto: UpdatePaymentDto) {
     return `This action updates a #${id} payment`;
   }

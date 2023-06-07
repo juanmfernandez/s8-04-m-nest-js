@@ -43,6 +43,12 @@ export class InvoicesController {
     return this.invoicesService.findOne(id);
   }
 
+  @Get(':id/company')
+  @ApiOkResponse({ description: 'List of invoices filtered by company id' })
+  findByCompany(@Param('id') id: string) {
+    return this.invoicesService.findByCompany(id);
+  }
+
   @Get(':id/pdf')
   @ApiProduces('application/pdf')
   @ApiOkResponse({ description: 'PDF file named ${id}.pdf' })

@@ -8,7 +8,9 @@ import { JoiValidationSchema } from './config/joi.schema';
 import { AuthModule } from './auth/auth.module';
 import { CompaniesModule } from './companies/companies.module';
 import { PaymentsModule } from './payments/payments.module';
+import { DebtModule } from './debt/debt.module';
 import { InvoicesModule } from './invoices/invoices.module';
+
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { InvoicesModule } from './invoices/invoices.module';
     AuthModule,
     CompaniesModule,
     PaymentsModule,
+    DebtModule,
     InvoicesModule,
   ],
 })
